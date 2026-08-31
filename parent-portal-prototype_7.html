@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>بوابة أولياء الأمور — نموذج أولي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<style>
+  :root{
+    --ink:#0F3D3E;
+    --ink-deep:#0A2B2C;
+    --sand:#F1E9D8;
+    --sand-line:#DACBAA;
+    --gold:#B8912A;
+    --gold-soft:#E4CE95;
+    --paper:#FFFDF8;
+    --danger:#A23B2E;
+    --good:#3E7052;
+    --mid:#B07A1F;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Cairo',sans-serif;
+    background:var(--ink-deep);
+    color:var(--ink-deep);
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+  }
+  .phone{
+    width:100%;
+    max-width:420px;
+    min-height:100vh;
+    background:var(--paper);
+    position:relative;
+    overflow:hidden;
+  }
+  .topband{
+    background:var(--ink);
+    color:var(--sand);
+    padding:22px 20px 40px;
+    position:relative;
+  }
+  .topband::after{
+    content:"";
+    position:absolute;
+    right:0;left:0;bottom:-1px;
+    height:24px;
+    background:var(--paper);
+    border-radius:24px 24px 0 0;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand-mark{
+    width:38px;height:38px;
+    border:2px solid var(--gold-soft);
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;
+    color:var(--gold-soft);
+    font-size:15px;
+    flex-shrink:0;
+  }
+  .brand-text .t1{font-size:13px;opacity:.75;letter-spacing:.3px;}
+  .brand-text .t2{font-size:17px;font-weight:700;}
+  .screen{padding:0 20px 32px;}
+  .card{
+    background:var(--paper);
+    border:1px solid var(--sand-line);
+    border-radius:14px;
+    padding:18px;
+    margin-top:-14px;
+  }
+  h1{font-size:20px;margin:0 0 6px;font-weight:900;color:var(--ink);}
+  p.sub{margin:0 0 20px;font-size:13.5px;color:#6b6252;line-height:1.7;}
+  label{
+    display:block;
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--ink);
+    margin:14px 0 6px;
+  }
+  input{
+    width:100%;
+    padding:13px 14px;
+    border:1.5px solid var(--sand-line);
+    border-radius:10px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:15px;
+    background:#fff;
+    color:var(--ink-deep);
+    letter-spacing:1px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  input:focus{border-color:var(--gold);}
+  input.text{font-family:'Cairo',sans-serif;letter-spacing:normal;}
+  .btn{
+    width:100%;
+    margin-top:20px;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:var(--ink);
+    color:var(--sand);
+    font-family:'Cairo',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+  }
+  .btn:active{background:var(--ink-deep);}
+  .btn.gold{background:var(--gold);color:var(--ink-deep);}
+  .err{
+    margin-top:12px;
+    background:#FBEEEA;
+    border:1px solid #E4B7A9;
+    color:var(--danger);
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:13px;
+  }
+  .hint{
+    margin-top:16px;
+    font-size:12px;
+    color:#8a8069;
+    line-height:1.8;
+    border-top:1px dashed var(--sand-line);
+    padding-top:12px;
+  }
+  .hint b{color:var(--ink);}
+  /* dashboard */
+  .head-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+  }
+  .logout{
+    background:none;border:1px solid rgba(241,233,216,.4);
+    color:var(--sand);font-size:11.5px;padding:6px 12px;
+    border-radius:20px;cursor:pointer;font-family:'Cairo',sans-serif;
+  }
+  .student-name{font-size:22px;font-weight:900;margin:4px 0 2px;}
+  .student-meta{font-size:12.5px;opacity:.8;}
+  .term-eyebrow{
+    font-size:11px;letter-spacing:1px;color:var(--gold);
+    font-weight:700;margin-bottom:4px;
+  }
+  table{width:100%;border-collapse:collapse;margin-top:6px;}
+  th{
+    text-align:right;font-size:11px;color:#8a8069;
+    font-weight:700;padding:8px 4px;border-bottom:1.5px solid var(--sand-line);
+  }
+  td{
+    padding:12px 4px;border-bottom:1px solid #F0E9DA;
+    font-size:14px;
+  }
+  .subject{font-weight:700;color:var(--ink);}
+  .mark{
+    font-family:'IBM Plex Mono',monospace;font-weight:700;
+    font-size:15px;
+  }
+  .mark.good{color:var(--good);}
+  .mark.mid{color:var(--mid);}
+  .mark.low{color:var(--danger);}
+  .tag{
+    display:inline-block;font-size:10px;font-weight:700;
+    padding:2px 8px;border-radius:20px;margin-top:2px;
+  }
+  .tag.good{background:#E4F0E8;color:var(--good);}
+  .tag.mid{background:#F6EAD4;color:var(--mid);}
+  .tag.low{background:#F6E0DB;color:var(--danger);}
+  .avg-card{
+    background:var(--ink);color:var(--sand);
+    border-radius:12px;padding:16px;margin-top:18px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .avg-card .lbl{font-size:12.5px;opacity:.85;}
+  .avg-card .val{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:700;color:var(--gold-soft);}
+  .foot-note{
+    text-align:center;font-size:11px;color:#a89f8a;margin-top:22px;
+    line-height:1.8;
+  }
+  .demo-strip{
+    position:fixed;top:0;left:0;right:0;
+    background:var(--gold);color:var(--ink-deep);
+    text-align:center;font-size:11.5px;font-weight:700;
+    padding:5px;z-index:10;
+  }
+  .top-pad{height:26px;}
+  .credit-footer{
+    text-align:center;font-size:10.5px;color:#a89f8a;
+    padding:16px 20px 22px;letter-spacing:.2px;
+  }
+  .school-line{
+    font-size:11.5px;color:var(--gold-soft);font-weight:700;
+    margin-bottom:4px;letter-spacing:.2px;
+  }
+  .admin-link{
+    display:block;text-align:center;margin-top:18px;
+    font-size:11.5px;color:#a89f8a;text-decoration:none;
+  }
+  .drop{
+    border:2px dashed var(--sand-line);
+    border-radius:12px;padding:26px 14px;text-align:center;
+    background:#FBF7EE;cursor:pointer;
+  }
+  .drop.over{border-color:var(--gold);background:#F6EAD0;}
+  .drop .icon{font-size:26px;margin-bottom:6px;}
+  .drop .t{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .drop .s{font-size:11.5px;color:#8a8069;margin-top:4px;}
+  .back-link{
+    display:inline-block;margin-bottom:10px;font-size:12px;
+    color:#8a8069;text-decoration:none;cursor:pointer;
+  }
+  .gen-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px;}
+  .gen-table th{text-align:right;font-size:10.5px;color:#8a8069;padding:6px 4px;border-bottom:1.5px solid var(--sand-line);}
+  .gen-table td{padding:8px 4px;border-bottom:1px solid #F0E9DA;}
+  .gen-table .code{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--gold);letter-spacing:1px;}
+  .row-btns{display:flex;gap:8px;margin-top:14px;}
+  .row-btns .btn{margin-top:0;}
+  .btn.outline{background:#fff;color:var(--ink);border:1.5px solid var(--ink);}
+  .note-box{
+    background:#F1EFE6;border-radius:10px;padding:12px 14px;
+    font-size:12px;color:#5c5748;line-height:1.8;margin-top:14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-strip">نسخة متصلة بقاعدة بيانات Firebase حقيقية — تأكدي من تفعيل قواعد الأمان قبل الاستخدام الفعلي</div>
+
+<div class="phone">
+  <div class="top-pad"></div>
+  <div id="app"></div>
+  <div class="credit-footer">فكرة وإعداد: خديجة سيف اليحيائي — مساعد مدير — مدرسة عين الفايضة — 2026/2027</div>
+</div>
+
+<script>
+/*
+  ⚠️ ملاحظة أمنية دائمة — لا تُحذف:
+  تم حذف طبقة كلمة السر لولي الأمر بناءً على طلب صريح من صاحبة المشروع.
+  الرمز (آخر 5 أرقام من الهوية + رقم الطالب في المنهل) هو الآن
+  مفتاح الدخول الوحيد والدائم لولي الأمر — غير قابل للتغيير أو الإبطال
+  لاحقًا لأنه مبني على بيانات ثابتة لدى الطالب. أي تسريب لهذين الرقمين
+  يعني وصولًا دائمًا لدرجات الطالب. لوحة الإدارة محمية بتسجيل دخول
+  Firebase Authentication حقيقي، وهذا مستقل تمامًا عن ملاحظة ولي الأمر أعلاه.
+
+  ⚠️ لا تعمل هذه الصفحة كما يجب إلا بعد نشر قواعد أمان Firestore
+  الصحيحة من Firebase Console. راجعي الشرح المرفق في المحادثة.
+*/
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBEBUUhQF7Mfb95YgiPn7ICVBIwuoOPWNE",
+  authDomain: "student-hub-f6af4.firebaseapp.com",
+  projectId: "student-hub-f6af4",
+  storageBucket: "student-hub-f6af4.firebasestorage.app",
+  messagingSenderId: "390050678331",
+  appId: "1:390050678331:web:db92f2bf8f753b4fdf7e1e",
+  measurementId: "G-VJT3FZGF5X"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+// أسماء مجموعات خاصة بهذا التطبيق فقط، لتفادي أي تصادم مع مشاريعك الأخرى
+// التي قد تستخدم نفس مشروع Firebase.
+const STUDENTS_COL = "parent_portal_students";
+const SETTINGS_DOC = db.collection("parent_portal_settings").doc("config");
+
+const FIXED_SUBJECTS = ["اللغة العربية","التربية الإسلامية","الدراسات الاجتماعية","اللغة الإنجليزية","الرياضيات","العلوم"];
+
+let state = { view:"code", code:null, studentData:null, adminUnlocked:false, schoolName:"", generated:[] };
+
+auth.onAuthStateChanged(user=>{ state.adminUnlocked = !!user; });
+
+function markClass(m){ return m>=85?"good": m>=70?"mid":"low"; }
+function markTag(m){ return m>=85?"ممتاز": m>=70?"جيد":"يحتاج متابعة"; }
+
+async function commitInChunks(items, applyFn){
+  const CHUNK = 450;
+  for(let i=0;i<items.length;i+=CHUNK){
+    const batch = db.batch();
+    items.slice(i, i+CHUNK).forEach(item=>applyFn(batch,item));
+    await batch.commit();
+  }
+}
+
+function render(){
+  const app = document.getElementById('app');
+  if(state.view==="code") app.innerHTML = codeScreen();
+  else if(state.view==="dashboard") app.innerHTML = dashboardScreen();
+  else if(state.view==="adminGate") app.innerHTML = adminGateScreen();
+  else if(state.view==="admin") app.innerHTML = adminScreen();
+  bind();
+}
+
+function resetToCode(){
+  state = { view:"code", code:null, studentData:null, adminUnlocked:state.adminUnlocked, schoolName:state.schoolName, generated:[] };
+}
+
+function codeScreen(){
+  return `
+  <div class="topband">
+    <div class="brand">
+      <div class="brand-mark">و</div>
+      <div class="brand-text">
+        <div class="t1">${state.schoolName ? state.schoolName : 'نموذج تجريبي — لم يُحدَّد اسم المدرسة بعد'}</div>
+        <div class="t2">بوابة أولياء الأمور</div>
+      </div>
+    </div>
+  </div>
+  <div class="screen">
+    <div class="card">
+      <h1>تفعيل الحساب</h1>
+      <p class="sub">أدخلي الرقمين المرسلين من المدرسة الخاصين بابنك/ابنتك.</p>
+      <label>آخر 5 أرقام من رقم الهوية الإماراتية</label>
+      <input id="idPartInput" class="text" placeholder="مثال: 34521" maxlength="5" inputmode="numeric">
+      <label>رقم الطالب في المنهل</label>
+      <input id="moePartInput" class="text" placeholder="مثال: 882134" inputmode="numeric">
+      <div id="errBox"></div>
+      <button class="btn" id="codeBtn">متابعة</button>
+      <button class="btn outline" id="toAdmin" style="margin-top:10px;">لوحة رفع ملف الإكسل (للإدارة فقط)</button>
+      <div class="hint">لا يوجد حساب بعد؟ اطلبي من الإدارة توليد بيانات تجريبية من لوحة الإدارة أولًا، أو تأكدي أن ملف الطلاب رُفع بنجاح.</div>
+    </div>
+  </div>`;
+}
+
+function adminGateScreen(){
+  return `
+  <div class="topband">
+    <div class="brand">
+      <div class="brand-mark">و</div>
+      <div class="brand-text">
+        <div class="t1">${state.schoolName ? state.schoolName : 'وصول مقيَّد'}</div>
+        <div class="t2">لوحة الإدارة</div>
+      </div>
+    </div>
+  </div>
+  <div class="screen">
+    <div class="card">
+      <a class="back-link" id="backFromGate">→ رجوع لتسجيل الدخول</a>
+      <h1>دخول الإدارة</h1>
+      <p class="sub">سجّلي الدخول بحساب الإدارة الذي أنشأتِه في Firebase Authentication.</p>
+      <label>البريد الإلكتروني</label>
+      <input id="adminEmailInput" class="text" type="email" placeholder="admin@example.com">
+      <label>كلمة السر</label>
+      <input id="adminPassInput" type="password" placeholder="••••••">
+      <div id="gateErr"></div>
+      <button class="btn" id="gateBtn">دخول</button>
+    </div>
+  </div>`;
+}
+
+function adminScreen(){
+  const gen = state.generated || [];
+  return `
+  <div class="topband">
+    <div class="brand">
+      <div class="brand-mark">و</div>
+      <div class="brand-text">
+        <div class="t1">${state.schoolName ? state.schoolName : 'للإدارة فقط — غير مرئي للأهالي'}</div>
+        <div class="t2">رفع بيانات الطلاب</div>
+      </div>
+    </div>
+  </div>
+  <div class="screen">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <a class="back-link" id="backFromAdmin">→ رجوع لتسجيل الدخول</a>
+        <a class="back-link" id="signOutBtn">تسجيل خروج الإدارة</a>
+      </div>
+      <h1>اسم المدرسة</h1>
+      <p class="sub">يظهر هذا الاسم في أعلى شاشات الأهالي بدل النص العام، ويُحفظ في قاعدة البيانات لكل الزوار.</p>
+      <input id="schoolNameInput" class="text" placeholder="مثال: مدرسة عين الفايضة" value="${state.schoolName||''}">
+      <button class="btn gold" id="saveSchoolBtn" style="margin-top:12px;">حفظ اسم المدرسة</button>
+      <div id="schoolSavedMsg">${state.schoolSaved ? `<div class="note-box">تم الحفظ.</div>` : ''}</div>
+      <h1 style="margin-top:24px;">رفع ملف الإكسل</h1>
+      <p class="sub">استخدمي القالب الرسمي: اسم الطالب | الصف/الشعبة | آخر 5 أرقام من الهوية | رقم الطالب في المنهل | ثم المواد الست بالترتيب. يُشتق رمز الدخول تلقائيًا من دمج الرقمين الثالث والرابع — احذفي صف المثال قبل الرفع.</p>
+      <button class="btn outline" id="wipeBtn" style="border-color:var(--danger);color:var(--danger);">حذف كل البيانات المرفوعة سابقًا</button>
+      <div id="wipeMsg">${state.wipeMsg ? `<div class="note-box">${state.wipeMsg}</div>` : ''}</div>
+      <div class="drop" id="dropZone">
+        <div class="icon">⇧</div>
+        <div class="t">اضغطي لاختيار ملف Excel</div>
+        <div class="s">.xlsx أو .xls</div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+      </div>
+      <div id="adminErr"></div>
+      ${gen.length ? adminResults(gen) : adminSample()}
+    </div>
+  </div>`;
+}
+
+function adminSample(){
+  return `<div class="note-box">لا تملكين ملفًا جاهزًا؟ لتجربة الفكرة الآن اضغطي الزر أدناه لتوليد 6 طلاب وهميين تلقائيًا.</div>
+  <button class="btn outline" id="sampleBtn">توليد بيانات تجريبية (بدون ملف)</button>`;
+}
+
+function adminResults(gen){
+  return `
+  <p class="sub" style="margin-top:18px;">تم توليد ${gen.length} رمز فريد (لم يُحفظ في القاعدة بعد). هذا الجدول للإدارة فقط.</p>
+  <table class="gen-table">
+    <tr><th>الاسم</th><th>الصف</th><th>الرمز</th></tr>
+    ${gen.map(g=>`<tr><td>${g.name}</td><td>${g.grade}</td><td class="code">${g.code}</td></tr>`).join('')}
+  </table>
+  <div class="row-btns">
+    <button class="btn outline" id="exportBtn">تصدير الرموز كإكسل</button>
+    <button class="btn gold" id="loadToSystemBtn">حفظ في قاعدة البيانات</button>
+  </div>
+  <div class="note-box">الملف المُصدَّر يحتوي على "الاسم + الرمز" فقط (بدون درجات) — ليكون جاهزًا للتوزيع الفردي على كل ولي أمر، وليس كقائمة مشتركة.</div>`;
+}
+
+function dashboardScreen(){
+  const s = state.studentData;
+  return `
+  <div class="topband">
+    <div class="head-row">
+      <div>
+        ${state.schoolName ? `<div class="school-line">${state.schoolName}</div>` : ''}
+        <div class="student-meta">${s.grade}</div>
+        <div class="student-name">${s.name}</div>
+      </div>
+      <button class="logout" id="logoutBtn">تسجيل خروج</button>
+    </div>
+  </div>
+  <div class="screen">
+    <div class="card">
+      <div class="term-eyebrow">${s.term}</div>
+      <h1>الدرجات الدراسية</h1>
+      <table>
+        <tr><th>المادة</th><th>الدرجة</th><th>التقييم</th></tr>
+        ${s.subjects.map(sub=>`
+          <tr>
+            <td class="subject">${sub.name}</td>
+            <td class="mark ${markClass(sub.mark)}">${sub.mark}</td>
+            <td><span class="tag ${markClass(sub.mark)}">${markTag(sub.mark)}</span></td>
+          </tr>
+        `).join('')}
+      </table>
+    </div>
+    <div class="foot-note">هذه البيانات خاصة بابنكم فقط، ولا يمكن الوصول إلى بيانات أي طالب آخر عبر هذا الحساب.</div>
+  </div>`;
+}
+
+// ---- توليد رمز عشوائي للبيانات التجريبية فقط (لا يُستخدم للطلاب الحقيقيين) ----
+function genCode(existingCodes){
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let code;
+  do{
+    code = "";
+    for(let i=0;i<6;i++) code += chars[Math.floor(Math.random()*chars.length)];
+  } while(existingCodes.has(code));
+  existingCodes.add(code);
+  return code;
+}
+
+function findHeaderRow(rows){
+  for(let i=0;i<rows.length;i++){
+    if(rows[i] && String(rows[i][0]||"").trim()==="اسم الطالب") return i;
+  }
+  return -1;
+}
+
+function parseSheet(rows){
+  const headerIdx = findHeaderRow(rows);
+  if(headerIdx === -1){
+    throw new Error("لم يتم العثور على عمود \"اسم الطالب\" — تأكدي من استخدام القالب الرسمي بدون تعديل العناوين.");
+  }
+  const seenInFile = new Set();
+  const out = [];
+  for(let i=headerIdx+1;i<rows.length;i++){
+    const r = rows[i];
+    if(!r || !r[0]) continue;
+    const name = String(r[0]).trim();
+    const grade = String(r[1]||"").trim();
+    const idPart = String(r[2]||"").trim().padStart(5,'0');
+    const moePart = String(r[3]||"").trim();
+    if(!idPart || !moePart){
+      throw new Error(`الصف الخاص بـ "${name}" ناقص: آخر 5 أرقام من الهوية أو رقم الطالب في المنهل.`);
+    }
+    const code = idPart + moePart;
+    if(seenInFile.has(code)){
+      throw new Error(`الرمز المُشتق للطالب "${name}" (${code}) مكرر مع طالب آخر في نفس الملف — تحققي من صحة الرقمين.`);
+    }
+    seenInFile.add(code);
+    const subjects = FIXED_SUBJECTS.map((subName,idx)=>({
+      name: subName,
+      mark: Number(r[4+idx]) || 0
+    }));
+    out.push({ code, name, grade, subjects });
+  }
+  return out;
+}
+
+function generateSampleData(){
+  const names = ["فاطمة خالد النعيمي","عبدالله راشد الظاهري","مريم علي السويدي","خالد حمد الكتبي","نورة سعيد الشامسي","سلطان محمد الحمادي"];
+  const grades = ["الصف الرابع — شعبة 1","الصف الرابع — شعبة 2","الصف الخامس — شعبة 1"];
+  const existingCodes = new Set();
+  return names.map(name=>({
+    code: genCode(existingCodes),
+    name,
+    grade: grades[Math.floor(Math.random()*grades.length)],
+    subjects: FIXED_SUBJECTS.map(n=>({name:n, mark: 55+Math.floor(Math.random()*45)}))
+  }));
+}
+
+function bind(){
+  const errBox = document.getElementById('errBox');
+
+  if(state.view==="code"){
+    document.getElementById('codeBtn').onclick = async ()=>{
+      const idPart = document.getElementById('idPartInput').value.trim().padStart(5,'0');
+      const moePart = document.getElementById('moePartInput').value.trim();
+      if(!idPart.match(/^\d{5}$/) || !moePart){
+        errBox.innerHTML = `<div class="err">أدخلي آخر 5 أرقام من الهوية ورقم الطالب في المنهل كاملَين.</div>`;
+        return;
+      }
+      const val = idPart + moePart;
+      const btn = document.getElementById('codeBtn');
+      btn.disabled = true; btn.textContent = "جارٍ التحقق...";
+      try{
+        const doc = await db.collection(STUDENTS_COL).doc(val).get();
+        if(!doc.exists){
+          errBox.innerHTML = `<div class="err">لا يوجد حساب مطابق لهذين الرقمين. تأكدي من صحة البيانات المرسلة من المدرسة.</div>`;
+          btn.disabled = false; btn.textContent = "متابعة";
+          return;
+        }
+        state.code = val;
+        state.studentData = doc.data();
+        state.view = "dashboard";
+        render();
+      }catch(err){
+        errBox.innerHTML = `<div class="err">تعذّر الاتصال بالخادم (${err.code||err.message}). تأكدي من نشر قواعد أمان Firestore واتصال الإنترنت.</div>`;
+        btn.disabled = false; btn.textContent = "متابعة";
+      }
+    };
+    document.getElementById('toAdmin').onclick = ()=>{ state.view = state.adminUnlocked ? "admin" : "adminGate"; render(); };
+  }
+
+  if(state.view==="adminGate"){
+    document.getElementById('backFromGate').onclick = ()=>{ resetToCode(); render(); };
+    document.getElementById('gateBtn').onclick = async ()=>{
+      const email = document.getElementById('adminEmailInput').value.trim();
+      const pass = document.getElementById('adminPassInput').value;
+      const btn = document.getElementById('gateBtn');
+      btn.disabled = true; btn.textContent = "جارٍ الدخول...";
+      try{
+        await auth.signInWithEmailAndPassword(email, pass);
+        state.adminUnlocked = true;
+        state.view = "admin";
+        render();
+      }catch(err){
+        document.getElementById('gateErr').innerHTML = `<div class="err">بيانات الدخول غير صحيحة أو الحساب غير موجود.</div>`;
+        btn.disabled = false; btn.textContent = "دخول";
+      }
+    };
+  }
+
+  if(state.view==="admin"){
+    document.getElementById('backFromAdmin').onclick = ()=>{ resetToCode(); render(); };
+    document.getElementById('signOutBtn').onclick = async ()=>{ await auth.signOut(); resetToCode(); render(); };
+    document.getElementById('schoolNameInput').oninput = (e)=>{ state.schoolName = e.target.value; state.schoolSaved = false; };
+    document.getElementById('saveSchoolBtn').onclick = async ()=>{
+      const val = document.getElementById('schoolNameInput').value.trim();
+      const btn = document.getElementById('saveSchoolBtn');
+      btn.disabled = true; btn.textContent = "جارٍ الحفظ...";
+      try{
+        await SETTINGS_DOC.set({ schoolName: val }, { merge:true });
+        state.schoolName = val;
+        state.schoolSaved = true;
+        render();
+      }catch(err){
+        document.getElementById('schoolSavedMsg').innerHTML = `<div class="err">تعذّر الحفظ: ${err.message}</div>`;
+        btn.disabled = false; btn.textContent = "حفظ اسم المدرسة";
+      }
+    };
+    document.getElementById('wipeBtn').onclick = async ()=>{
+      const btn = document.getElementById('wipeBtn');
+      btn.disabled = true;
+      try{
+        const snap = await db.collection(STUDENTS_COL).get();
+        if(snap.empty){
+          state.wipeMsg = "لا توجد بيانات مرفوعة لحذفها حاليًا.";
+          render();
+          return;
+        }
+        const ok = confirm(`سيتم حذف بيانات ${snap.size} طالب نهائيًا من قاعدة البيانات الحقيقية. هذا الإجراء لا يمكن التراجع عنه. هل تريدين المتابعة؟`);
+        if(!ok){ btn.disabled = false; return; }
+        await commitInChunks(snap.docs, (batch,doc)=>batch.delete(doc.ref));
+        state.generated = [];
+        state.wipeMsg = `تم حذف بيانات ${snap.size} طالب.`;
+        render();
+      }catch(err){
+        document.getElementById('adminErr').innerHTML = `<div class="err">تعذّر الحذف: ${err.message}</div>`;
+        btn.disabled = false;
+      }
+    };
+    const dz = document.getElementById('dropZone');
+    const fi = document.getElementById('fileInput');
+    dz.onclick = ()=> fi.click();
+    fi.onchange = (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        try{
+          const wb = XLSX.read(ev.target.result, {type:'array'});
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(sheet, {header:1});
+          state.generated = parseSheet(rows.filter(r=>r.length));
+          render();
+        }catch(err){
+          document.getElementById('adminErr').innerHTML = `<div class="err">${err.message || 'تعذّرت قراءة الملف. تأكدي من تنسيقه.'}</div>`;
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    };
+    const sampleBtn = document.getElementById('sampleBtn');
+    if(sampleBtn) sampleBtn.onclick = ()=>{ state.generated = generateSampleData(); render(); };
+    const exportBtn = document.getElementById('exportBtn');
+    if(exportBtn) exportBtn.onclick = ()=>{
+      const wsData = [["الاسم","الرمز"], ...state.generated.map(g=>[g.name,g.code])];
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "رموز الأهالي");
+      XLSX.writeFile(wb, "رموز_الأهالي.xlsx");
+    };
+    const loadBtn = document.getElementById('loadToSystemBtn');
+    if(loadBtn) loadBtn.onclick = async ()=>{
+      loadBtn.disabled = true; loadBtn.textContent = "جارٍ الحفظ...";
+      try{
+        const checks = await Promise.all(state.generated.map(g=>db.collection(STUDENTS_COL).doc(g.code).get()));
+        const conflictIdx = checks.findIndex(d=>d.exists);
+        if(conflictIdx !== -1){
+          const g = state.generated[conflictIdx];
+          const existingName = checks[conflictIdx].data().name;
+          throw new Error(`الرمز الخاص بـ "${g.name}" (${g.code}) موجود مسبقًا لطالب آخر باسم "${existingName}". لم يُحفظ أي طالب حتى يُحل هذا التعارض.`);
+        }
+        await commitInChunks(state.generated, (batch,g)=>{
+          const ref = db.collection(STUDENTS_COL).doc(g.code);
+          batch.set(ref, { name:g.name, grade:g.grade, term:"الفصل الدراسي الأول ٢٠٢٦", subjects:g.subjects });
+        });
+        const savedCount = state.generated.length;
+        resetToCode();
+        state.uploadMsg = `تم حفظ ${savedCount} طالب في قاعدة البيانات.`;
+        render();
+      }catch(err){
+        document.getElementById('adminErr').innerHTML = `<div class="err">${err.message}</div>`;
+        loadBtn.disabled = false; loadBtn.textContent = "حفظ في قاعدة البيانات";
+      }
+    };
+  }
+
+  if(state.view==="dashboard"){
+    document.getElementById('logoutBtn').onclick = ()=>{ resetToCode(); render(); };
+  }
+}
+
+async function bootstrap(){
+  try{
+    const snap = await SETTINGS_DOC.get();
+    if(snap.exists && snap.data().schoolName) state.schoolName = snap.data().schoolName;
+  }catch(err){ /* استمرار بالاسم الافتراضي لو تعذّر الاتصال */ }
+  render();
+}
+bootstrap();
+</script>
+</body>
+</html>
